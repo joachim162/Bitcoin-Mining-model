@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   bitcoin_mining_simulation:
     build:
@@ -8,7 +7,7 @@ services:
     ports:
       - "8521:8521"
     volumes:
-      - ./output:/app/output
+      - ./:/app
     environment:
       - PYTHONUNBUFFERED=1
     command: ["python", "bitcoin_mining_simulation.py"]

@@ -15,15 +15,16 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the entire project directory into the container
+# Copy the Python script
 COPY bitcoin_mining_simulation.py .
 
-# Optional: Create a directory for output or logs
-RUN mkdir /app/output
+# Create a volume mount point for output
+VOLUME ["/app/output"]
 
 # Set environment variables (optional)
 ENV PYTHONUNBUFFERED=1
 
+# Expose port if needed
 EXPOSE 8521
 
 # Default command to run the simulation
