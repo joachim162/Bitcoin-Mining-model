@@ -1,8 +1,6 @@
 # Bitcoin Mining Model
 
-Návod, jak spustit a pochopit model simulace těžby Bitcoinu napsaný pomocí frameworku **Mesa**. Model umožňuje simulaci těžby Bitcoinu v závislosti na různých parametrech, jako jsou hashrate těžařů, cena Bitcoinu a obtížnost těžby.
-
----
+Návod, jak spustit model simulace těžby Bitcoinu napsaný pomocí frameworku **Mesa**. Model umožňuje simulaci těžby Bitcoinu v závislosti na různých parametrech, jako jsou hashrate těžařů, cena Bitcoinu a obtížnost těžby.
 
 ## 1. **Naklonování repozitáře**
 
@@ -13,8 +11,6 @@ git clone https://github.com/joachim162/Bitcoin-Mining-model
 cd Bitcoin-Mining-model
 ```
 
----
-
 ## 2. **Příprava prostředí**
 
 ### Instalace Docker a Docker Compose
@@ -24,8 +20,6 @@ Ujistěte se, že máte nainstalovaný Docker a jeho plugin Docker Compose. Poku
 - [Průvodce pro instalaci Docker](https://docs.docker.com/get-docker/).
 - [Průvodce pro instalaci Docker Compose](https://docs.docker.com/compose/install/).
 
----
-
 ## 3. **Spuštění modelu**
 
 Pro spuštění modelu použijte následující příkaz (platí pro Linux, macOS i Windows):
@@ -33,8 +27,6 @@ Pro spuštění modelu použijte následující příkaz (platí pro Linux, macO
 ```bash
 docker-compose up
 ```
-
----
 
 ## 4. **Přístup k modelu pomocí webového rozhraní**
 
@@ -45,8 +37,6 @@ http://localhost:8521
 ```
 
 Zde se zobrazí grafické uživatelské rozhraní simulace, které vám umožní sledovat a analyzovat chování modelu.
-
----
 
 ## 5. **Jak model funguje**
 
@@ -73,21 +63,17 @@ Zde se zobrazí grafické uživatelské rozhraní simulace, které vám umožní
    - Celkový výkon sítě je součtem hashrate aktivních těžařů.  
    - Výkon sítě a obtížnost spolu úzce souvisí: čím vyšší je hashrate, tím roste pravděpodobnost dřívějšího vytěžení bloku.
 
----
-
 ### **Průběh simulace**
 
 1. **Inicializace modelu**  
    - Model je inicializován s určitým počtem těžařů. Uživatel si počet může zvolit sám.
 
-2. **Časové kroky (Steps)**  
+1. **Časové kroky (Steps)**  
    - V každém kroku simulace:  
      - Těžaři provádějí těžbu a kontrolují, zda našli nový blok.
-     - Cena Bitcoinu se aktualizuje pomocí náhodného růstu nebo šoku.  
+     - Cena Bitcoinu se aktualizuje pomocí náhodného růstu nebo poklesu.  
      - Těžaři přizpůsobují svůj hashrate na základě změn ceny bitcoinu.  
      - Model kontroluje a upravuje obtížnost těžby každých 50 bloků (neodpovídá realitě – pouze jako ukázka).
-
----
 
 ### **Sledované metriky**
 
@@ -97,19 +83,15 @@ Model poskytuje důležité metriky, které můžete sledovat pomocí grafů:
 - **Obtížnost (Difficulty)**: Dynamicky se mění na základě průměrného času pro těžbu bloku.  
 - **Počet bloků (Blocks Mined)**: Celkový počet bloků, které byly vytěženy během simulace.  
 - **Cena Bitcoinu (Bitcoin Price)**: Simulovaná cena Bitcoinu v čase.  
-- **Počet aktivních těžařů (Active Miners)**: Počet těžařů, kteří jsou v daném kroku aktivní.
-
----
+- **Počet aktivních těžařů (Active Miners)**: Počet těžařů.
 
 ### **Interaktivní prvky**
 
 Ve webovém rozhraní může uživatel experimentovat s následujícími parametry:
 
 - **Počet těžařů (Number of Miners)**: Umožňuje nastavit počet těžařů na začátku simulace.  
-- **Vizualizace mřížky**: Zobrazuje pozici těžařů a jejich stav.
+- **Vizualizace mřížky**: Zobrazuje stav těžarů.
 - **Grafy**: Interaktivní grafy ukazují změny hashratu, ceny Bitcoinu, obtížnosti a dalších metrik v čase.
-
----
 
 ## 6. **Zastavení modelu**
 
@@ -119,11 +101,9 @@ Pro zastavení modelu použijte v terminálu klávesovou zkratku **Ctrl+C**. Chc
 docker-compose down
 ```
 
----
-
 ## 7. **Další úpravy a rozšíření**
 
 Model je napsán v Pythonu pomocí frameworku **Mesa**, který umožňuje snadnou úpravu a rozšíření:
 
-- Chcete-li upravit chování těžařů nebo simulaci ceny Bitcoinu, editujte soubory v adresáři projektu.
-- Hlavní soubor modelu je `main.py`.
+- Chcete-li upravit chování těžařů nebo simulaci ceny Bitcoinu, editujte soubory v adresáři projektu. Díky tomu že má kontejner přímý přístup k souborům repozitáře se aplikace po modifikaci kódu automaticky restartuje.
+- Hlavní soubor modelu je `bitcoin_mining_simulation.py`.
