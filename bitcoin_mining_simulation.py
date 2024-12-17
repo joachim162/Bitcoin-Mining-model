@@ -149,31 +149,55 @@ class BitcoinMiningModel(mesa.Model):
         return max(total_hash_rate, MIN_NETWORK_HASH_RATE)
 
     
+    
     def adjust_difficulty(self):
         self.blocks_mined += 1
-        if self.blocks_mined % 50 == 0:
-            time_elapsed = self.total_simulation_time
-            target_time = 500
-            difficulty_adjustment = target_time / max(time_elapsed, 1)
 
-            # Adjust difficulty based on block time target
-            difficulty_adjustment = max(0.9, min(difficulty_adjustment, 1.1))
-            self.difficulty *= difficulty_adjustment
+        # Initialize attributes for tracking adjustments
+        if not hasattr(self, "last_adjustment_time"):
+            self.last_adjustment_time = self.total_simulation_time
+        if not hasattr(self, "last_blocks_mined"):
+            self.last_blocks_mined = 0
 
-            # Smooth difficulty adjustment if hash rate has dropped
-            recent_hash_rate = self.get_total_hash_rate()
-            if recent_hash_rate < MIN_NETWORK_HASH_RATE * 1.2:
-                self.difficulty *= 0.99  # Gradual decrease for lower hash rate
+        # Target block time (1.0 per block in this case)
+        target_block_time = 1.0
+        blocks_for_adjustment = 50
+
+        # Adjust difficulty after every 50 blocks
+        if self.blocks_mined % blocks_for_adjustment == 0:
+            time_since_last_adjustment = self.total_simulation_time - self.last_adjustment_time
+            blocks_since_last_adjustment = self.blocks_mined - self.last_blocks_mined
+
+            # Calculate the average time to mine a block
+            average_block_time = time_since_last_adjustment / blocks_since_last_adjustment
+
+            # Calculate adjustment factor
+            if average_block_time > target_block_time:
+                # If average block time is greater than target, increase difficulty
+                adjustment_factor = 1.05  # Increase by 5%
+            elif average_block_time < target_block_time:
+                # If average block time is less than target, decrease difficulty
+                adjustment_factor = 0.95  # Decrease by 5%
             else:
-                self.difficulty *= 1.01  # Gradual increase for higher hash rate
+                # If average block time is exactly equal to target, no change
+                adjustment_factor = 1.0
 
-            # Enforce minimum difficulty to avoid it dropping too low
-            self.difficulty = max(self.difficulty, 1.0)
+            # Apply the adjustment factor to the difficulty
+            self.difficulty *= adjustment_factor
 
-            # Add a maximum difficulty to prevent it from spiking too high
-            self.difficulty = min(self.difficulty, 10.0)
+            # Enforce difficulty bounds to prevent extreme values
+            self.difficulty = max(self.difficulty, 1.0)  # Minimum difficulty
+            self.difficulty = min(self.difficulty, 10.0)  # Maximum difficulty
 
+            # Update tracking attributes for the next adjustment
+            self.last_adjustment_time = self.total_simulation_time
+            self.last_blocks_mined = self.blocks_mined
+
+            # Save to difficulty history
             self.difficulty_history.append(self.difficulty)
+
+            # Debugging output
+            print(f"Adjusting difficulty to: {self.difficulty:.2f} | Average Block Time: {average_block_time:.2f} | Target: {target_block_time:.2f}")
 
 
     def step(self):
@@ -197,7 +221,6 @@ class BitcoinMiningModel(mesa.Model):
             self.step()
 
 # Visualization setup
-
 def miner_portrayal(agent):
     if not agent:
         return
