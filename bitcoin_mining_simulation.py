@@ -15,12 +15,16 @@ class Miner(mesa.Agent):
         self.reward_balance = initial_balance
         self.active = True
         self.entry_time = 0  # Default to 0, will be set during model initialization
-    
+        self.days_active = 0  # Track how many days the miner has been active
+
     def mine(self):
         """
         Attempt to mine a block based on the miner's hash rate and simulated Bitcoin price.
         """
         total_network_hash_rate = self.model.get_total_hash_rate()
+        if total_network_hash_rate == 0:
+            return False
+        
         block_found_probability = self.hash_rate / total_network_hash_rate
         
         if random.random() < block_found_probability:
@@ -34,23 +38,23 @@ class Miner(mesa.Agent):
         """
         Dynamically adjust hash rate based on Bitcoin price and rewards.
         """
-        # More aggressive hash rate adjustment based on price and rewards
         price_factor = self.model.bitcoin_price
-        reward_factor = self.reward_balance / (self.model.block_reward * price_factor)
+        reward_factor = self.reward_balance / (self.model.block_reward * price_factor * self.days_active + 1)
         
-        # Adjust hash rate based on profitability
-        if reward_factor < 0.5:
-            # Reduce hash rate if not profitable
-            self.hash_rate *= max(0.7, 1 - (1 - reward_factor))
+        # Market sentiment factor (random factor to mimic market conditions)
+        market_sentiment = random.uniform(0.8, 1.2)
+        
+        # Hash rate adjustment based on price and reward factor
+        if price_factor < self.model.previous_price:  # Price has dropped
+            self.hash_rate *= max(0.8, 1 - (1 - reward_factor) * market_sentiment)
         else:
-            # Increase hash rate if profitable
-            self.hash_rate *= min(1.3, 1 + (reward_factor - 0.5))
+            self.hash_rate *= min(1.2, 1 + (reward_factor - 0.5) * market_sentiment)
         
         # Ensure hash rate stays within reasonable bounds
-        self.hash_rate = max(0.01, min(self.hash_rate, 100))
+        self.hash_rate = max(0.1, min(self.hash_rate, 100))
         
-        # Deactivate if hash rate becomes too low
-        if self.hash_rate < 0.1:
+        # Deactivate if hash rate becomes too low and the miner has been active for some time
+        if self.hash_rate < 0.5 and self.days_active > 5:  # More reasonable threshold and grace period
             self.active = False
 
     def step(self):
@@ -64,13 +68,14 @@ class Miner(mesa.Agent):
             self.model.adjust_difficulty()
         
         self.adjust_hash_rate()
+        self.days_active += 1  # Increment the number of days the miner has been active
 
 class BitcoinMiningModel(mesa.Model):
     """
     Mesa model for simulating Bitcoin mining dynamics.
     """
     def __init__(self, 
-                 num_miners=10, 
+                 num_miners=25, 
                  initial_block_reward=6.25):
         # Tracking metrics
         self.total_simulation_time = 0
@@ -131,7 +136,6 @@ class BitcoinMiningModel(mesa.Model):
         pos = (x, y)
         
         # Determine initial hash rate based on market conditions
-        # More attractive market conditions lead to higher initial hash rates
         market_attractiveness = self.bitcoin_price * self.block_reward
         initial_hash_rate = random.uniform(0.1, min(10, market_attractiveness))
         
@@ -146,7 +150,6 @@ class BitcoinMiningModel(mesa.Model):
         self.miners.append(miner)
         self.next_miner_id += 1
     
-    
     def simulate_bitcoin_price(self):
         """
         Simulate Bitcoin price with increased volatility and random shocks.
@@ -154,28 +157,32 @@ class BitcoinMiningModel(mesa.Model):
         last_price = self.price_history[-1]
         
         # Random walk with higher volatility and occasional shocks
-        base_volatility = 0.25  # Increased standard deviation for regular fluctuations
+        base_volatility = 0.5  # Increased standard deviation for regular fluctuations
         random_walk = random.gauss(0, base_volatility)
         
         # Add more frequent large shocks
         if random.random() < 0.2:  # 20% chance of a significant price change
-            shock_magnitude = random.choice([-0.7, -0.5, -0.3, 0.3, 0.5, 0.7])
+            shock_magnitude = random.choice([-1.0, -0.7, -0.5, -0.3, 0.3, 0.5, 0.7, 1.0])
             random_walk += shock_magnitude
+        
+        # Influence price based on total hash rate
+        total_hash_rate = self.get_total_hash_rate()
+        hash_rate_influence = random.gauss(0, 0.05) * (total_hash_rate / 10000)
+        random_walk += hash_rate_influence
         
         # Calculate the new price and ensure it remains within realistic bounds
         new_price = last_price * (1 + random_walk)
-        new_price = max(0.1, min(new_price, 50))  # Prevent the price from crashing or skyrocketing
+        new_price = max(1, min(new_price, 100000))  # Prevent the price from crashing or skyrocketing
         
+        self.previous_price = self.bitcoin_price
         self.bitcoin_price = new_price
         self.price_history.append(new_price)
 
-    
     def get_total_hash_rate(self):
         """
         Calculate total network hash rate.
         """
         return sum(agent.hash_rate for agent in self.schedule.agents if agent.active)
-    
 
     def adjust_difficulty(self):
         """
@@ -195,23 +202,20 @@ class BitcoinMiningModel(mesa.Model):
             # Target time for mining 50 blocks (e.g., 500 steps)
             target_time = 500
             
+            # Calculate the adjustment factor based on time difference
+            adjustment_factor = target_time / time_elapsed
+            
             # Adjust difficulty based on elapsed time
-            if time_elapsed < target_time:
-                # Blocks are mined too quickly, increase difficulty
-                self.difficulty *= 1.1
-            elif time_elapsed > target_time:
-                # Blocks are mined too slowly, decrease difficulty
-                self.difficulty *= 0.9
+            self.difficulty *= adjustment_factor
             
             # Store difficulty history for visualization
             self.difficulty_history.append(self.difficulty)
             
             # Probabilistically add new miners based on market conditions
             market_attractiveness = self.bitcoin_price * self.block_reward
-            if random.random() < market_attractiveness / 10:
+            if random.random() < market_attractiveness / 1000:
                 self.add_new_miner()
 
-    
     def step(self):
         """
         Model step function.
@@ -274,7 +278,7 @@ def run_simulation_server():
         [grid, hash_rate_chart, difficulty_chart, blocks_mined_chart],
         "Bitcoin Mining Simulation",
         {
-            "num_miners": UserParam.Slider("Number of Miners", 10, 1, 50)
+            "num_miners": UserParam.Slider("Number of Miners", 25, 1, 50)
         }
     )
     
