@@ -34,28 +34,21 @@ class Miner(mesa.Agent):
         if self.days_active == 0:
             return
 
+        # Calculate price change percentage
         price_change = self.model.bitcoin_price - self.model.previous_price
         price_change_percentage = (price_change / max(self.model.previous_price, 1)) * 100
 
-        # Adjust hash rate gradually based on price changes
+        # Add randomness to the adjustment factor
+        randomness_factor = random.uniform(0.95, 1.05)  # Random multiplier between 0.95 and 1.05
+
+        # Adjust hash rate gradually based on price changes with randomness
         if price_change_percentage > 5:
-            self.hash_rate *= 1.05  # Moderate increase
+            self.hash_rate *= 1.05 * randomness_factor  # Moderate increase with randomness
         elif price_change_percentage < -5:
-            self.hash_rate *= 0.95  # Moderate decrease
+            self.hash_rate *= 0.95 * randomness_factor  # Moderate decrease with randomness
 
         # Ensure hash rate stays within bounds
         self.hash_rate = max(MIN_HASH_RATE, min(self.hash_rate, 100))
-
-        # Profitability check with stickiness for minor drops
-        profitability_threshold = self.model.block_reward * self.model.bitcoin_price * 0.1
-
-        if self.hash_rate < MIN_HASH_RATE or self.reward_balance < profitability_threshold:
-            if self.model.bitcoin_price < self.dormant_price * 0.9:
-                active_miners = len([a for a in self.model.schedule.agents if a.active])
-                if active_miners > 3:  # Ensure at least 3 miners remain active
-                    self.active = False
-                    self.state = "dormant"
-                    self.dormant_price = self.model.bitcoin_price
 
     def step(self):
         if not self.active:
