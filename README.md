@@ -43,23 +43,29 @@ Zde se zobrazí grafické uživatelské rozhraní simulace, které vám umožní
 ### **Hlavní komponenty modelu**
 
 1. **Těžaři (Miner)** - Agent
+
    - Těžaři mají individuální **hashrate** (výpočetní výkon), který určuje pravděpodobnost nalezení nového bloku.
    - Těžaři dynamicky přizpůsobují svůj hashrate na základě ceny bitcoinu.
 
- **Cena Bitcoinu (Bitcoin Price)**
-   - Cena Bitcoinu je simulována s výskytem náhlých šoků (prudký růst nebo pokles).  
-   - Změny ceny ovlivňují rozhodnutí těžařů o jejich hashrate v síti.
+\newpage
 
-3. **Obtížnost těžby (Difficulty)**  
+2. **Cena Bitcoinu (Bitcoin Price)**
+
+   * Cena Bitcoinu je simulována s výskytem náhlých šoků (prudký růst nebo pokles).  
+
+3. **Obtížnost těžby (Difficulty)**
+
    - Obtížnost je klíčový parametr, který určuje, jak složité je nalézt nový blok.  
    - Pokud je průměrná doba na nalezení bloku vyšší než cílový čas, obtížnost se zvýší.  
    - Pokud je doba kratší, obtížnost se sníží.  
 
 4. **Bloky a odměny**  
-   - Těžaři získávají **odměnu za blok** vynásobenou aktuální cenou Bitcoinu.  
+
+   - Těžaři získávají **odměnu za blok** na nově nalezený blok.  
    - Model sleduje počet vytěžených bloků a odměny, které jednotliví těžaři získali.
 
-5. **Síťový hashrate**  
+5. **Hashrate sítě**  
+
    - Celkový výkon sítě je součtem hashrate aktivních těžařů.  
    - Výkon sítě a obtížnost spolu úzce souvisí: čím vyšší je hashrate, tím roste pravděpodobnost dřívějšího vytěžení bloku.
 
@@ -73,24 +79,26 @@ Zde se zobrazí grafické uživatelské rozhraní simulace, které vám umožní
      - Těžaři provádějí těžbu a kontrolují, zda našli nový blok.
      - Cena Bitcoinu se aktualizuje pomocí náhodného růstu nebo poklesu.  
      - Těžaři přizpůsobují svůj hashrate na základě změn ceny bitcoinu.  
-     - Model kontroluje a upravuje obtížnost těžby každých 50 bloků (neodpovídá realitě – pouze jako ukázka).
+     - Model kontroluje a upravuje obtížnost těžby každých 50 bloků.
 
 ### **Sledované metriky**
 
-Model poskytuje důležité metriky, které můžete sledovat pomocí grafů:
+Model poskytuje důležité metriky, vizualizované v grafech:
 
 - **Celkový výkon sítě (Total Hash Rate)**: Ukazuje celkový výpočetní výkon všech těžařů.  
 - **Obtížnost (Difficulty)**: Dynamicky se mění na základě průměrného času pro těžbu bloku.  
 - **Počet bloků (Blocks Mined)**: Celkový počet bloků, které byly vytěženy během simulace.  
 - **Cena Bitcoinu (Bitcoin Price)**: Simulovaná cena Bitcoinu v čase.  
-- **Počet aktivních těžařů (Active Miners)**: Počet těžařů.
+- **Počet aktivních těžařů: Počet těžařů.
 
 ### **Interaktivní prvky**
 
 Ve webovém rozhraní může uživatel experimentovat s následujícími parametry:
 
 - **Počet těžařů (Number of Miners)**: Umožňuje nastavit počet těžařů na začátku simulace.  
+
 - **Vizualizace mřížky**: Zobrazuje stav těžarů.
+
 - **Grafy**: Interaktivní grafy ukazují změny hashratu, ceny Bitcoinu, obtížnosti a dalších metrik v čase.
 
 ## 6. **Zastavení modelu**
@@ -105,5 +113,4 @@ docker-compose down
 
 Model je napsán v Pythonu pomocí frameworku **Mesa**, který umožňuje snadnou úpravu a rozšíření:
 
-- Chcete-li upravit chování těžařů nebo simulaci ceny Bitcoinu, editujte soubory v adresáři projektu. Díky tomu že má kontejner přímý přístup k souborům repozitáře se aplikace po modifikaci kódu automaticky restartuje.
-- Hlavní soubor modelu je `bitcoin_mining_simulation.py`.
+- Chcete-li upravit chování těžařů nebo simulaci ceny Bitcoinu, editujte soubory v adresáři projektu. Díky tomu že má kontejner přímý přístup k souborům repozitáře, se aplikace po modifikaci kódu automaticky restartuje.
