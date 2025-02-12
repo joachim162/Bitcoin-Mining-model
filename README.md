@@ -1,116 +1,138 @@
-# Bitcoin Mining Model
+# Bitcoin Mining Model v Dockeru
 
-Návod, jak spustit model simulace těžby Bitcoinu napsaný pomocí frameworku **Mesa**. Model umožňuje simulaci těžby Bitcoinu v závislosti na různých parametrech, jako jsou hashrate těžařů, cena Bitcoinu a obtížnost těžby.
+Tato dokumentace popisuje, jak spustit model simulace těžby Bitcoinu napsaný pomocí frameworku **Mesa**. Model umožňuje simulaci těžby Bitcoinu v závislosti na různých parametrech, jako jsou hashrate těžařů, cena Bitcoinu a obtížnost těžby.
 
-## 1. **Naklonování repozitáře**
+## 1. Naklonování repozitáře
 
-Nejprve naklonujte repozitář s projektem z GitHubu.
-
+Nejprve naklonujte repozitář s projektem z GitHubu:
 ```bash
 git clone https://github.com/joachim162/Bitcoin-Mining-model
 cd Bitcoin-Mining-model
 ```
 
-## 2. **Příprava prostředí**
+## 2. Příprava prostředí
 
 ### Instalace Docker a Docker Compose
 
 Ujistěte se, že máte nainstalovaný Docker a jeho plugin Docker Compose. Pokud nemáte, postupujte podle oficiální dokumentace: 
+- [Průvodce pro instalaci Docker](https://docs.docker.com/get-docker/)
+- [Průvodce pro instalaci Docker Compose](https://docs.docker.com/compose/install/)
 
-- [Průvodce pro instalaci Docker](https://docs.docker.com/get-docker/).
-- [Průvodce pro instalaci Docker Compose](https://docs.docker.com/compose/install/).
+## 3. Struktura Docker konfigurace
 
-## 3. **Spuštění modelu**
+### Dockerfile
+Projekt obsahuje `Dockerfile`, který definuje, jak se má vytvořit Docker image pro náš model. Dockerfile specifikuje:
+- Základní Python image
+- Pracovní adresář v kontejneru
+- Kopírování zdrojových souborů modelu
+- Instalaci potřebných závislostí z `requirements.txt`
+- Konfiguraci webového serveru pro Mesa rozhraní
 
-Pro spuštění modelu použijte následující příkaz (platí pro Linux, macOS i Windows):
+### Docker Compose
+Soubor `docker-compose.yml` definuje služby, které má Docker spustit, včetně:
+- Názvu služby
+- Cesty k Dockerfile
+- Mapování portu 8521 pro webové rozhraní
+- Mapování volumes pro přímý přístup k souborům projektu
+- Konfigurace prostředí pro vývoj
 
+## 4. Spuštění modelu
+
+Když spustíte příkaz:
 ```bash
 docker-compose up
 ```
 
-## 4. **Přístup k modelu pomocí webového rozhraní**
+Následuje tento proces:
+1. Docker Compose načte konfiguraci z `docker-compose.yml`
+2. Pokud image ještě neexistuje, Docker sestaví novou image podle instrukcí v Dockerfile
+3. Vytvoří a spustí kontejner z této image
+4. Spustí Mesa server na portu 8521
 
-Po spuštění modelu otevřete ve vašem webovém prohlížeči adresu:
-
+### Přístup k webovému rozhraní
+Po spuštění kontejneru můžete přistoupit k modelu přes webový prohlížeč na adrese:
 ```
 http://localhost:8521
 ```
 
-Zde se zobrazí grafické uživatelské rozhraní simulace, které vám umožní sledovat a analyzovat chování modelu.
+## 5. Komponenty a funkcionalita modelu
 
-## 5. **Jak model funguje**
+### Hlavní komponenty modelu
 
-### **Hlavní komponenty modelu**
+1. **Těžaři (Miner) - Agent**
+   - Každý těžař má vlastní hashrate určující pravděpodobnost nalezení bloku
+   - Dynamické přizpůsobování hashratu podle ceny bitcoinu
 
-1. **Těžaři (Miner)** - Agent
+2. **Cena Bitcoinu**
+   - Simulace včetně náhlých cenových šoků
+   - Ovlivňuje chování těžařů
 
-   - Těžaři mají individuální **hashrate** (výpočetní výkon), který určuje pravděpodobnost nalezení nového bloku.
-   - Těžaři dynamicky přizpůsobují svůj hashrate na základě ceny bitcoinu.
+3. **Obtížnost těžby**
+   - Dynamicky se upravuje každých 50 bloků
+   - Reaguje na průměrnou dobu těžby bloků
 
-\newpage
+4. **Bloky a odměny**
+   - Systém odměn za vytěžené bloky
+   - Sledování statistik jednotlivých těžařů
 
-2. **Cena Bitcoinu (Bitcoin Price)**
+5. **Hashrate sítě**
+   - Agregace výkonu všech aktivních těžařů
+   - Vliv na pravděpodobnost těžby
 
-   * Cena Bitcoinu je simulována s výskytem náhlých šoků (prudký růst nebo pokles).  
+### Průběh simulace
 
-3. **Obtížnost těžby (Difficulty)**
+1. **Inicializace**
+   - Nastavení počátečního počtu těžařů
+   - Inicializace parametrů sítě
 
-   - Obtížnost je klíčový parametr, který určuje, jak složité je nalézt nový blok.  
-   - Pokud je průměrná doba na nalezení bloku vyšší než cílový čas, obtížnost se zvýší.  
-   - Pokud je doba kratší, obtížnost se sníží.  
+2. **Časové kroky**
+   - Těžba bloků
+   - Aktualizace ceny Bitcoinu
+   - Přizpůsobení hashratu těžařů
+   - Úprava obtížnosti
 
-4. **Bloky a odměny**  
+### Sledované metriky
+Model vizualizuje v reálném čase:
+- Celkový hashrate sítě
+- Aktuální obtížnost
+- Počet vytěžených bloků
+- Cenu Bitcoinu
+- Počet aktivních těžařů
 
-   - Těžaři získávají **odměnu za blok** na nově nalezený blok.  
-   - Model sleduje počet vytěžených bloků a odměny, které jednotliví těžaři získali.
+### Interaktivní prvky
+Webové rozhraní nabízí:
+- Nastavení počtu těžařů
+- Vizualizaci stavu těžařů v mřížce
+- Interaktivní grafy metrik
 
-5. **Hashrate sítě**  
+## 6. Správa kontejneru
 
-   - Celkový výkon sítě je součtem hashrate aktivních těžařů.  
-   - Výkon sítě a obtížnost spolu úzce souvisí: čím vyšší je hashrate, tím roste pravděpodobnost dřívějšího vytěžení bloku.
-
-### **Průběh simulace**
-
-1. **Inicializace modelu**  
-   - Model je inicializován s určitým počtem těžařů. Uživatel si počet může zvolit sám.
-
-1. **Časové kroky (Steps)**  
-   - V každém kroku simulace:  
-     - Těžaři provádějí těžbu a kontrolují, zda našli nový blok.
-     - Cena Bitcoinu se aktualizuje pomocí náhodného růstu nebo poklesu.  
-     - Těžaři přizpůsobují svůj hashrate na základě změn ceny bitcoinu.  
-     - Model kontroluje a upravuje obtížnost těžby každých 50 bloků.
-
-### **Sledované metriky**
-
-Model poskytuje důležité metriky, vizualizované v grafech:
-
-- **Celkový výkon sítě (Total Hash Rate)**: Ukazuje celkový výpočetní výkon všech těžařů.  
-- **Obtížnost (Difficulty)**: Dynamicky se mění na základě průměrného času pro těžbu bloku.  
-- **Počet bloků (Blocks Mined)**: Celkový počet bloků, které byly vytěženy během simulace.  
-- **Cena Bitcoinu (Bitcoin Price)**: Simulovaná cena Bitcoinu v čase.  
-- **Počet aktivních těžařů: Počet těžařů.
-
-### **Interaktivní prvky**
-
-Ve webovém rozhraní může uživatel experimentovat s následujícími parametry:
-
-- **Počet těžařů (Number of Miners)**: Umožňuje nastavit počet těžařů na začátku simulace.  
-
-- **Vizualizace mřížky**: Zobrazuje stav těžarů.
-
-- **Grafy**: Interaktivní grafy ukazují změny hashratu, ceny Bitcoinu, obtížnosti a dalších metrik v čase.
-
-## 6. **Zastavení modelu**
-
-Pro zastavení modelu použijte v terminálu klávesovou zkratku **Ctrl+C**. Chcete-li odstranit vytvořené kontejnery, spusťte:
-
+Užitečné příkazy pro práci s modelem:
 ```bash
+# Zastavení modelu
+Ctrl+C
+
+# Odstranění kontejnerů
 docker-compose down
+
+# Zobrazení logů
+docker-compose logs
+
+# Přestavění image
+docker-compose build --no-cache
 ```
 
-## 7. **Další úpravy a rozšíření**
+## 7. Vývoj a úpravy
 
-Model je napsán v Pythonu pomocí frameworku **Mesa**, který umožňuje snadnou úpravu a rozšíření:
+Model podporuje hot-reload během vývoje:
+- Soubory projektu jsou namapované do kontejneru
+- Změny v kódu se projeví po automatickém restartu aplikace
+- Úpravy lze provádět v Python souborech bez nutnosti rebuildu kontejneru
 
-- Chcete-li upravit chování těžařů nebo simulaci ceny Bitcoinu, editujte soubory v adresáři projektu. Díky tomu že má kontejner přímý přístup k souborům repozitáře, se aplikace po modifikaci kódu automaticky restartuje.
+## 8. Řešení problémů
+
+Při potížích zkontrolujte:
+1. Dostupnost portu 8521
+2. Oprávnění pro práci s Dockerem
+3. Správnost instalace všech závislostí
+4. Logy kontejneru pomocí `docker-compose logs`
